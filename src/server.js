@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors'; // Import cors package
+import cors from 'cors';
 import ShowboxAPI from './ShowboxAPI.js';
 import FebboxAPI from './FebBoxApi.js';
 import dotenv from 'dotenv';
@@ -7,18 +7,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = process.env.API_PORT || 3000;
 
-// Enable CORS for all origins
+// IMPORTANT: Railway uses this PORT
+const PORT = process.env.PORT || 3000;
+
+// Enable CORS
 app.use(cors());
 
-// OR manually set CORS headers if you don’t want to use `cors` package
+// Manual CORS (extra safety)
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*'); // Allow requests from any domain
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allowed methods
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
-    // Handle preflight requests
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -26,22 +27,21 @@ app.use((req, res, next) => {
     next();
 });
 
-// Middleware to handle JSON requests
 app.use(express.json());
 
-// Initialize APIs
+// APIs
 const showboxAPI = new ShowboxAPI();
 const febboxAPI = new FebboxAPI();
 
-// Test endpoint
+// Health check
 app.get('/', (req, res) => {
-    res.send('Showbox and Febbox API is working!');
+    res.send('Showbox & Febbox API is running 🚀');
 });
 
-// Autocomplete endpoint
+// Autocomplete
 app.get('/api/autocomplete', async (req, res) => {
-    const { keyword, pagelimit } = req.query;
     try {
+        const { keyword, pagelimit } = req.query;
         const results = await showboxAPI.getAutocomplete(keyword, pagelimit);
         res.json(results);
     } catch (error) {
@@ -49,10 +49,10 @@ app.get('/api/autocomplete', async (req, res) => {
     }
 });
 
-// Search endpoint
+// Search
 app.get('/api/search', async (req, res) => {
-    const { type = 'all', title, page = 1, pagelimit = 20 } = req.query;
     try {
+        const { type = 'all', title, page = 1, pagelimit = 20 } = req.query;
         const results = await showboxAPI.search(title, type, page, pagelimit);
         res.json(results);
     } catch (error) {
@@ -62,10 +62,9 @@ app.get('/api/search', async (req, res) => {
 
 // Movie details
 app.get('/api/movie/:id', async (req, res) => {
-    const { id } = req.params;
     try {
-        const movieDetails = await showboxAPI.getMovieDetails(id);
-        res.json(movieDetails);
+        const results = await showboxAPI.getMovieDetails(req.params.id);
+        res.json(results);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -73,19 +72,18 @@ app.get('/api/movie/:id', async (req, res) => {
 
 // Show details
 app.get('/api/show/:id', async (req, res) => {
-    const { id } = req.params;
     try {
-        const showDetails = await showboxAPI.getShowDetails(id);
-        res.json(showDetails);
+        const results = await showboxAPI.getShowDetails(req.params.id);
+        res.json(results);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get FebBox ID
+// FebBox ID
 app.get('/api/febbox/id', async (req, res) => {
-    const { id, type } = req.query;
     try {
+        const { id, type } = req.query;
         const febBoxId = await showboxAPI.getFebBoxId(id, type);
         res.json({ febBoxId });
     } catch (error) {
@@ -93,31 +91,31 @@ app.get('/api/febbox/id', async (req, res) => {
     }
 });
 
-// Get Febbox files
+// Files
 app.get('/api/febbox/files', async (req, res) => {
-    const { shareKey, parent_id = 0 } = req.query;
-    const cookie = req.headers['x-auth-cookie'] || null;
     try {
-        const files = await febboxAPI.getFileList(shareKey, parent_id , cookie);
+        const { shareKey, parent_id = 0 } = req.query;
+        const cookie = req.headers['x-auth-cookie'] || null;
+        const files = await febboxAPI.getFileList(shareKey, parent_id, cookie);
         res.json(files);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get download links
+// Links
 app.get('/api/febbox/links', async (req, res) => {
-    const { shareKey, fid } = req.query;
-    const cookie = req.headers['x-auth-cookie'] || null;
     try {
-        const links = await febboxAPI.getLinks(shareKey, fid , cookie);
+        const { shareKey, fid } = req.query;
+        const cookie = req.headers['x-auth-cookie'] || null;
+        const links = await febboxAPI.getLinks(shareKey, fid, cookie);
         res.json(links);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+// START SERVER (RAILWAY FIXED)
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
 });
