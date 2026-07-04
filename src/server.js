@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ IMPORTANT: Railway uses PORT env
+// ✅ Railway PORT FIX (MOST IMPORTANT)
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -101,7 +101,7 @@ app.get('/api/febbox/links', async (req, res) => {
     }
 });
 
-// Start server (IMPORTANT FIX)
-app.listen(PORT, '0.0.0.0', () => {
+// Start server (RAILWAY SAFE)
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });
